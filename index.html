@@ -1,47 +1,224 @@
 <!DOCTYPE html>
-<html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>미소 파트너 정산 리포트</title>
-<style>*{box-sizing:border-box;margin:0;padding:0;}body{background:#f2f4f7;font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#1a1a2e;}.header{background:linear-gradient(135deg,#2B5FEC 0%,#1a3fa8 100%);color:white;padding:28px 24px 24px;display:flex;justify-content:space-between;align-items:flex-start;}.logo{font-size:20px;font-weight:800;color:white;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;}.wrap{max-width:540px;margin:0 auto;padding:20px 16px 48px;}.card{background:white;border-radius:16px;padding:20px;margin-bottom:14px;box-shadow:0 2px 8px rgba(0,0,0,0.06);}.card-label{font-size:11px;font-weight:700;color:#2B5FEC;letter-spacing:.5px;margin-bottom:6px;}.card-title{font-size:17px;font-weight:700;margin-bottom:16px;}.row{display:flex;align-items:flex-start;justify-content:space-between;padding:13px 0;border-bottom:1px solid #f5f5fb;flex-wrap:wrap;gap:4px;}.row:last-child{border-bottom:none;}.big-compare{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;text-align:center;margin-bottom:16px;}.big-val{font-size:32px;font-weight:800;}.big-sub{font-size:12px;color:#999;margin-top:4px;}.pill{display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:700;}.footer{text-align:center;font-size:12px;color:#bbb;padding:8px 0 24px;}table{width:100%;border-collapse:collapse;font-size:14px;}th{text-align:left;color:#999;font-size:12px;font-weight:600;padding-bottom:10px;border-bottom:1.5px solid #eef0f5;}th:not(:first-child){text-align:right;}.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid #f5f5fb;}.legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:#888;}.legend-dot{width:8px;height:8px;border-radius:50%;}.bank-card{background:linear-gradient(135deg,#1a3fa8 0%,#2B5FEC 100%);border-radius:16px;padding:20px;margin-bottom:14px;color:white;box-shadow:0 4px 12px rgba(43,95,236,0.25);}.bank-amount{font-size:28px;font-weight:800;margin:10px 0 6px;}.bank-notice{font-size:12px;opacity:.65;margin-top:8px;line-height:1.7;}a.list-item{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid #f5f5fb;text-decoration:none;color:inherit;}a.list-item:last-child{border-bottom:none;}.type-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;margin-left:6px;vertical-align:middle;}</style>
-</head><body><div id="app"></div>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>미소 디비전 파트너 리포트</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f6fa;color:#222;min-height:100vh}
+.header{background:#1a1f36;color:#fff;padding:16px 20px;display:flex;align-items:center;gap:12px}
+.header h1{font-size:18px;font-weight:700}
+.logo{font-size:22px;font-weight:900;color:#ff6b35}
+.container{max-width:680px;margin:0 auto;padding:16px}
+.not-found{text-align:center;padding:60px 20px;color:#888}
+.not-found h2{font-size:22px;margin-bottom:8px;color:#444}
+
+/* Partner header card */
+.partner-card{background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.partner-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.type-badge{padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;letter-spacing:.5px}
+.type-MV{background:#e8f4fd;color:#1a73e8}
+.type-MVS{background:#fce8fd;color:#9c27b0}
+.partner-name{font-size:20px;font-weight:800;color:#1a1f36}
+
+/* Month tabs */
+.month-tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.month-tab{padding:8px 16px;border-radius:24px;border:2px solid #ddd;background:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;color:#666}
+.month-tab.active{border-color:#1a1f36;background:#1a1f36;color:#fff}
+
+/* Metrics grid */
+.metrics{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.metric{background:#f8f9ff;border-radius:12px;padding:14px}
+.metric-label{font-size:11px;color:#888;font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px}
+.metric-value{font-size:22px;font-weight:800;color:#1a1f36}
+.metric-sub{font-size:12px;color:#888;margin-top:2px}
+.metric.highlight{background:#1a1f36;color:#fff}
+.metric.highlight .metric-label{color:#aaa}
+.metric.highlight .metric-value{color:#fff}
+.metric.highlight .metric-sub{color:#aaa}
+.metric.green-bg{background:#e8f8f0}
+.metric.green-bg .metric-value{color:#0d9e5a}
+
+/* Rate bar */
+.rate-section{margin-bottom:16px}
+.rate-label{font-size:12px;color:#888;margin-bottom:6px;font-weight:600}
+.rate-bar-bg{background:#eee;border-radius:8px;height:12px;overflow:hidden}
+.rate-bar{height:100%;border-radius:8px;background:linear-gradient(90deg,#1a73e8,#4ca3ff);transition:width .6s ease}
+.rate-text{font-size:13px;font-weight:700;color:#1a73e8;margin-top:4px}
+
+/* Region table */
+.section-title{font-size:13px;font-weight:700;color:#888;letter-spacing:.5px;text-transform:uppercase;margin-bottom:10px}
+.region-table{width:100%;border-collapse:collapse;font-size:14px}
+.region-table th{background:#f0f1f5;padding:8px 10px;text-align:left;font-size:11px;color:#888;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+.region-table td{padding:9px 10px;border-bottom:1px solid #f0f1f5}
+.region-table tr:last-child td{border-bottom:none}
+.region-table .num{text-align:right;font-weight:700;color:#1a1f36}
+.region-table .rate-cell{text-align:right;font-size:12px}
+.rate-pill{padding:2px 8px;border-radius:12px;font-weight:700;font-size:12px}
+.rate-high{background:#e8f8f0;color:#0d9e5a}
+.rate-mid{background:#fff8e1;color:#f59d00}
+.rate-low{background:#fde8e8;color:#e53935}
+
+/* Chart */
+.chart-wrap{margin-top:12px;height:200px;position:relative}
+
+/* Directory */
+.dir-section{margin-bottom:24px}
+.dir-title{font-size:15px;font-weight:800;color:#1a1f36;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #f0f1f5}
+.partner-list{display:flex;flex-direction:column;gap:8px}
+.partner-item{background:#fff;border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 4px rgba(0,0,0,.06);cursor:pointer;text-decoration:none;color:inherit;transition:box-shadow .2s}
+.partner-item:hover{box-shadow:0 4px 12px rgba(0,0,0,.12)}
+.pi-left{display:flex;align-items:center;gap:10px}
+.pi-name{font-size:15px;font-weight:700;color:#1a1f36}
+.pi-regions{font-size:12px;color:#999;margin-top:2px}
+.pi-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.pi-amount{font-size:14px;font-weight:800;color:#1a1f36}
+.pi-months{display:flex;gap:4px}
+.pi-month{font-size:11px;padding:2px 7px;border-radius:10px;background:#f0f1f5;color:#666;font-weight:600}
+.pi-month.active{background:#1a1f36;color:#fff}
+
+.no-next{background:#fffbf0;border:1px dashed #fcc;border-radius:8px;padding:10px 14px;font-size:12px;color:#999;text-align:center;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="header">
+  <span class="logo">M</span>
+  <h1>디비전 파트너 리포트</h1>
+</div>
+<div class="container" id="app"></div>
+
 <script>
-const PARTNERS=[{"pid": 84714, "name": "모범이사", "type": "MVS", "month": "7월", "year": 2026, "regions": ["대전"], "generated": 134, "participated": 134, "participation_rate": 100.0, "sales_amount": 350000, "bank_amount": 385000, "aov_participation": 2612, "region_detail": [{"region": "대전", "total": 134, "partner": 134}]}, {"pid": 97034, "name": "두꺼비", "type": "MVS", "month": "7월", "year": 2026, "regions": ["경기 안산"], "generated": 63, "participated": 34, "participation_rate": 54.0, "sales_amount": 210000, "bank_amount": 231000, "aov_participation": 6176, "region_detail": [{"region": "경기 안산", "total": 63, "partner": 34}]}, {"pid": 61270, "name": "프로용달이사", "type": "MVS", "month": "7월", "year": 2026, "regions": ["경기 남양주"], "generated": 53, "participated": 36, "participation_rate": 67.9, "sales_amount": 120000, "bank_amount": 132000, "aov_participation": 3333, "region_detail": [{"region": "경기 남양주", "total": 53, "partner": 36}]}, {"pid": 36235, "name": "정겨운익스프레스", "type": "MVS", "month": "7월", "year": 2026, "regions": ["서울 강동구", "서울 광진구"], "generated": 188, "participated": 185, "participation_rate": 98.4, "sales_amount": 480000, "bank_amount": 528000, "aov_participation": 2595, "region_detail": [{"region": "서울 강동구", "total": 64, "partner": 62}, {"region": "서울 광진구", "total": 124, "partner": 123}]}, {"pid": 70345, "name": "행복나름이사", "type": "MVS", "month": "7월", "year": 2026, "regions": ["경기 시흥"], "generated": 44, "participated": 29, "participation_rate": 65.9, "sales_amount": 120000, "bank_amount": 132000, "aov_participation": 4138, "region_detail": [{"region": "경기 시흥", "total": 44, "partner": 29}]}, {"pid": 92143, "name": "해찬익스프레스", "type": "MVS", "month": "7월", "year": 2026, "regions": ["경기 수원"], "generated": 194, "participated": 194, "participation_rate": 100.0, "sales_amount": 480000, "bank_amount": 528000, "aov_participation": 2474, "region_detail": [{"region": "경기 수원", "total": 194, "partner": 194}]}, {"pid": 34692, "name": "아재용달이사", "type": "MVS", "month": "7월", "year": 2026, "regions": ["경기 평택"], "generated": 96, "participated": 96, "participation_rate": 100.0, "sales_amount": 210000, "bank_amount": 231000, "aov_participation": 2188, "region_detail": [{"region": "경기 평택", "total": 96, "partner": 96}]}, {"pid": 47415, "name": "퍼펙트이사", "type": "MV", "month": "7월", "year": 2026, "regions": ["대전", "세종", "충북 음성", "충북 증평", "충북 진천", "충북 청주"], "generated": 286, "participated": 186, "participation_rate": 65.0, "sales_amount": 1760000, "bank_amount": 1936000, "aov_participation": 9462, "region_detail": [{"region": "대전", "total": 187, "partner": 76}, {"region": "세종", "total": 62, "partner": 47}, {"region": "충북 음성", "total": 15, "partner": 7}, {"region": "충북 증평", "total": 3, "partner": 3}, {"region": "충북 진천", "total": 9, "partner": 6}, {"region": "충북 청주", "total": 97, "partner": 47}]}, {"pid": 14181, "name": "광일익스프레스", "type": "MV", "month": "7월", "year": 2026, "regions": ["광주 광산구"], "generated": 46, "participated": 47, "participation_rate": 102.2, "sales_amount": 230000, "bank_amount": 253000, "aov_participation": 4894, "region_detail": [{"region": "광주 광산구", "total": 60, "partner": 47}]}, {"pid": 41209, "name": "대박이사", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 구리", "경기 남양주", "경기 하남"], "generated": 183, "participated": 167, "participation_rate": 91.3, "sales_amount": 920000, "bank_amount": 1012000, "aov_participation": 5509, "region_detail": [{"region": "경기 구리", "total": 29, "partner": 23}, {"region": "경기 남양주", "total": 159, "partner": 111}, {"region": "경기 하남", "total": 50, "partner": 33}]}, {"pid": 74986, "name": "황제익스프레스", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 안산"], "generated": 122, "participated": 122, "participation_rate": 100.0, "sales_amount": 550000, "bank_amount": 605000, "aov_participation": 4508, "region_detail": [{"region": "경기 안산", "total": 122, "partner": 122}]}, {"pid": 91979, "name": "이사나라", "type": "MV", "month": "7월", "year": 2026, "regions": ["세종"], "generated": 48, "participated": 56, "participation_rate": 116.7, "sales_amount": 300000, "bank_amount": 330000, "aov_participation": 5357, "region_detail": [{"region": "세종", "total": 62, "partner": 56}]}, {"pid": 72790, "name": "두꺼비이사", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 오산", "경기 평택"], "generated": 198, "participated": 198, "participation_rate": 100.0, "sales_amount": 1150000, "bank_amount": 1265000, "aov_participation": 5808, "region_detail": [{"region": "경기 오산", "total": 61, "partner": 61}, {"region": "경기 평택", "total": 137, "partner": 137}]}, {"pid": 12276, "name": "SK 이삿짐이사", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 구리", "경기 동두천", "경기 양주", "경기 의정부"], "generated": 150, "participated": 151, "participation_rate": 100.7, "sales_amount": 760000, "bank_amount": 836000, "aov_participation": 5033, "region_detail": [{"region": "경기 구리", "total": 29, "partner": 18}, {"region": "경기 동두천", "total": 12, "partner": 10}, {"region": "경기 양주", "total": 58, "partner": 53}, {"region": "경기 의정부", "total": 96, "partner": 70}]}, {"pid": 10824, "name": "GTS 금성익스프레스", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 성남 분당구", "경기 용인 수지구"], "generated": 121, "participated": 110, "participation_rate": 90.9, "sales_amount": 780000, "bank_amount": 858000, "aov_participation": 7091, "region_detail": [{"region": "경기 성남 분당구", "total": 82, "partner": 47}, {"region": "경기 용인 수지구", "total": 75, "partner": 63}]}, {"pid": 32134, "name": "오성익스프레스", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 군포", "경기 수원", "경기 안산", "경기 안양", "경기 용인 기흥구", "경기 용인 수지구", "경기 의왕", "경기 화성"], "generated": 784, "participated": 375, "participation_rate": 47.8, "sales_amount": 4030000, "bank_amount": 4433000, "aov_participation": 10747, "region_detail": [{"region": "경기 군포", "total": 60, "partner": 21}, {"region": "경기 수원", "total": 320, "partner": 112}, {"region": "경기 안산", "total": 122, "partner": 36}, {"region": "경기 안양", "total": 115, "partner": 40}, {"region": "경기 용인 기흥구", "total": 79, "partner": 29}, {"region": "경기 용인 수지구", "total": 75, "partner": 35}, {"region": "경기 의왕", "total": 32, "partner": 10}, {"region": "경기 화성", "total": 218, "partner": 92}]}, {"pid": 70858, "name": "공간연구소만옥이사", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 과천", "경기 군포", "경기 성남 분당구", "경기 수원", "경기 시흥", "경기 안양", "경기 의왕"], "generated": 555, "participated": 538, "participation_rate": 96.9, "sales_amount": 2820000, "bank_amount": 3102000, "aov_participation": 5242, "region_detail": [{"region": "경기 과천", "total": 10, "partner": 10}, {"region": "경기 군포", "total": 60, "partner": 43}, {"region": "경기 성남 분당구", "total": 82, "partner": 53}, {"region": "경기 수원", "total": 320, "partner": 245}, {"region": "경기 시흥", "total": 104, "partner": 83}, {"region": "경기 안양", "total": 115, "partner": 80}, {"region": "경기 의왕", "total": 32, "partner": 24}]}, {"pid": 43131, "name": "영익스프레스", "type": "MV", "month": "7월", "year": 2026, "regions": ["대구"], "generated": 128, "participated": 117, "participation_rate": 91.4, "sales_amount": 1000000, "bank_amount": 1100000, "aov_participation": 8547, "region_detail": [{"region": "대구", "total": 232, "partner": 117}]}, {"pid": 26118, "name": "에스케이이사몰", "type": "MV", "month": "7월", "year": 2026, "regions": ["경기 화성"], "generated": 167, "participated": 173, "participation_rate": 103.4, "sales_amount": 1000000, "bank_amount": 1100000, "aov_participation": 5780, "region_detail": [{"region": "경기 화성", "total": 167, "partner": 173}]}];
-const BANK="우리은행 1005-104-376097",T=80;
-const OVER100_NOTE="100%이상 참여율 지역은 18평 이상 주문이 예상보다 많이 발생되어 참여되셨어요";
-const rc=r=>r>=T?"#00b87a":"#ef4444",rb=r=>r>=T?"#e6faf3":"#fff0f0",rl=r=>r>=T?"목표달성 ✓":"목표미달";
-const fw=n=>"₩"+n.toLocaleString("ko-KR");
-function bar(pct,c){return`<div style="height:10px;background:#eef0f5;border-radius:6px;overflow:hidden;margin:8px 0 4px;"><div style="height:100%;width:${Math.min(pct,100)}%;background:${c};border-radius:6px;"></div></div><div style="display:flex;justify-content:space-between;font-size:11px;color:#bbb;"><span>0%</span><span>70%</span><span>80%</span><span>100%</span></div>`;}
-function regionRows(p){return p.region_detail.map(r=>{const rate=r.total>0?r.partner/r.total*100:0,disp=Math.min(rate,100);return`<tr><td style="padding:11px 0;border-bottom:1px solid #f5f5fb;font-weight:600;">${r.region}</td><td style="padding:11px 0;border-bottom:1px solid #f5f5fb;text-align:right;">${r.total.toLocaleString()}건</td><td style="padding:11px 0;border-bottom:1px solid #f5f5fb;text-align:right;">${r.partner.toLocaleString()}건</td><td style="padding:11px 0;border-bottom:1px solid #f5f5fb;text-align:right;"><span style="background:${rb(disp)};color:${rc(disp)};padding:3px 9px;border-radius:20px;font-size:12px;font-weight:700;">${rate.toFixed(1)}%</span></td></tr>`;}).join("");}
-function renderPartner(p){const part=p.participation_rate,pc=rc(part),regStr=p.regions.join(" · ");
-const warn=part<T?`<p style="width:100%;font-size:13px;color:#ef4444;font-weight:600;padding-top:8px;">⚠️ 마감일이 많으셨던 것 같아요. 미소의 주문도 많이 받아주시면 감사하겠습니다.</p>`:"";
-const hasOver=p.region_detail.some(r=>r.partner>r.total);
-const over100=hasOver?`<p style="font-size:12px;color:#888;margin-top:14px;padding-top:12px;border-top:1px solid #f5f5fb;line-height:1.6;">‧ ${OVER100_NOTE}</p>`:"";
-return`<div class="header"><div><h1 style="font-size:22px;font-weight:700;margin-bottom:6px;">${p.name} 정산리포트</h1><p style="font-size:14px;opacity:.85;">${p.year}년 ${p.month} 정산리포트</p><p style="font-size:12px;opacity:.65;margin-top:4px;">담당 지역 · ${regStr}</p></div><div class="logo">miso</div></div>
-<div class="wrap">
-<div class="card"><div class="card-label">참여 & 실적</div><div class="card-title">지역 내 요청 기준 참여 현황이에요</div>
-<div class="big-compare"><div><div class="big-val" style="color:#1a1a2e;">${p.generated.toLocaleString()}</div><div class="big-sub">미소 생성 주문</div></div><div style="font-size:22px;color:#d0d5e8;">→</div><div><div class="big-val" style="color:${pc};">${p.participated.toLocaleString()}</div><div class="big-sub">파트너 참여 주문</div></div></div>
-<div><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;"><span style="font-size:14px;color:#555;">참여율</span><span style="font-size:20px;font-weight:800;color:${pc};">${part.toFixed(1)}%&nbsp;<span class="pill" style="background:${rb(part)};color:${pc};font-size:11px;">${rl(part)}</span></span></div>${bar(part,pc)}
-<div class="legend"><div class="legend-item"><div class="legend-dot" style="background:#00b87a;"></div>80% 이상 · 목표달성</div><div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div>80% 미만 · 목표미달</div></div>${warn}</div></div>
-<div class="card"><div class="card-label">견적 &amp; 매출</div><div class="card-title">7월 견적 참여비 현황이에요</div>
-<div class="row"><span style="font-size:14px;color:#555;">파트너 판매금액</span><span style="font-size:20px;font-weight:800;color:#2B5FEC;">${fw(p.sales_amount)}</span></div>
-<div class="row"><span style="font-size:14px;color:#555;">참여기준 평균 견적참여비</span><span style="font-size:20px;font-weight:800;">${p.aov_participation.toLocaleString()}원</span></div></div>
-<div class="bank-card"><div style="font-size:11px;font-weight:700;opacity:.7;letter-spacing:.5px;margin-bottom:4px;">입금 안내</div><div class="bank-amount">${fw(p.bank_amount)}</div><div style="font-size:13px;opacity:.7;margin-bottom:6px;">(부가세 포함)</div><div style="font-size:14px;opacity:.85;">🏦 ${BANK}</div><div class="bank-notice">입금은 매월 첫째주까지 부탁드립니다.</div></div>
-<div class="card"><div class="card-label">지역별 참여 현황</div><div class="card-title">지역 별 참여 주문 현황이에요</div>
-<table><thead><tr><th>지역</th><th style="text-align:right">미소 생성</th><th style="text-align:right">파트너 참여</th><th style="text-align:right">참여율</th></tr></thead><tbody>${regionRows(p)}</tbody></table>
-${over100}</div>
-<div class="footer">미소 · ${p.year}년 ${p.month} 정산 리포트</div></div>`;}
-function renderList(){
-const mvs=PARTNERS.filter(p=>p.type==="MVS"),mv=PARTNERS.filter(p=>p.type==="MV");
-const mkItems=list=>list.map(p=>`<a class="list-item" href="?pid=${p.pid}"><div><div style="font-weight:700;font-size:15px;">${p.name}</div><div style="font-size:12px;color:#aaa;margin-top:3px;">${p.regions.join(", ")}</div></div><div style="text-align:right;"><div style="font-size:18px;font-weight:700;color:${rc(p.participation_rate)};">${p.participation_rate.toFixed(1)}%</div><div style="font-size:11px;color:#aaa;">참여율</div></div></a>`).join("");
-return`<div class="header"><div><h1 style="font-size:22px;font-weight:700;">미소 파트너 정산리포트</h1><p style="font-size:14px;opacity:.85;">2026년 7월</p></div><div class="logo">miso</div></div>
-<div class="wrap">
-<div style="font-size:12px;font-weight:700;color:#2B5FEC;letter-spacing:.5px;margin-bottom:8px;padding:0 4px;">MVS 파트너</div>
-<div class="card">${mkItems(mvs)}</div>
-<div style="font-size:12px;font-weight:700;color:#2B5FEC;letter-spacing:.5px;margin-bottom:8px;padding:0 4px;">MV 파트너</div>
-<div class="card">${mkItems(mv)}</div>
-</div>`;}
-const params=new URLSearchParams(location.search);
-const pid=parseInt(params.get("pid"));
-const namePar=params.get("name");
-const p=PARTNERS.find(x=>x.pid===pid)||(namePar?PARTNERS.find(x=>x.name===namePar):null);
-document.getElementById("app").innerHTML=p?renderPartner(p):renderList();
-</script></body></html>
+var DATA = [{"pid": 70858, "name": "주식회사 공간연구소만옥", "type": "MV", "month_num": 7, "year": 2026, "generated": 723, "participated": 538, "rate": 74.4, "bank_amount": 2850667, "aov": 5299, "regions": [{"region": "경기 과천", "total": 10, "partner": 10}, {"region": "경기 군포", "total": 60, "partner": 43}, {"region": "경기 성남 분당구", "total": 82, "partner": 53}, {"region": "경기 수원", "total": 320, "partner": 245}, {"region": "경기 시흥", "total": 104, "partner": 83}, {"region": "경기 안양", "total": 115, "partner": 80}, {"region": "경기 의왕", "total": 32, "partner": 24}]}, {"pid": 12276, "name": "SK이삿짐이사", "type": "MV", "month_num": 7, "year": 2026, "generated": 195, "participated": 151, "rate": 77.4, "bank_amount": 768273, "aov": 5088, "regions": [{"region": "경기 구리", "total": 29, "partner": 18}, {"region": "경기 동두천", "total": 12, "partner": 10}, {"region": "경기 양주", "total": 58, "partner": 53}, {"region": "경기 의정부", "total": 96, "partner": 70}]}, {"pid": 41209, "name": "대박이사", "type": "MV", "month_num": 7, "year": 2026, "generated": 238, "participated": 167, "rate": 70.2, "bank_amount": 930000, "aov": 5569, "regions": [{"region": "경기 구리", "total": 29, "partner": 23}, {"region": "경기 남양주", "total": 159, "partner": 111}, {"region": "경기 하남", "total": 50, "partner": 33}]}, {"pid": 32134, "name": "오성이사", "type": "MV", "month_num": 7, "year": 2026, "generated": 1021, "participated": 375, "rate": 36.7, "bank_amount": 4073803, "aov": 10863, "regions": [{"region": "경기 군포", "total": 60, "partner": 21}, {"region": "경기 수원", "total": 320, "partner": 112}, {"region": "경기 안산", "total": 122, "partner": 36}, {"region": "경기 안양", "total": 115, "partner": 40}, {"region": "경기 용인 기흥구", "total": 79, "partner": 29}, {"region": "경기 용인 수지구", "total": 75, "partner": 35}, {"region": "경기 의왕", "total": 32, "partner": 10}, {"region": "경기 화성", "total": 218, "partner": 92}]}, {"pid": 10824, "name": "GTS 금성익스프레스", "type": "MV", "month_num": 7, "year": 2026, "generated": 157, "participated": 110, "rate": 70.1, "bank_amount": 788485, "aov": 7168, "regions": [{"region": "경기 성남 분당구", "total": 82, "partner": 47}, {"region": "경기 용인 수지구", "total": 75, "partner": 63}]}, {"pid": 74986, "name": "황제익스프레스", "type": "MV", "month_num": 7, "year": 2026, "generated": 122, "participated": 122, "rate": 100.0, "bank_amount": 555985, "aov": 4557, "regions": [{"region": "경기 안산", "total": 122, "partner": 122}]}, {"pid": 72790, "name": "뚜겁이", "type": "MV", "month_num": 7, "year": 2026, "generated": 198, "participated": 198, "rate": 100.0, "bank_amount": 1162500, "aov": 5871, "regions": [{"region": "경기 오산", "total": 61, "partner": 61}, {"region": "경기 평택", "total": 137, "partner": 137}]}, {"pid": 26118, "name": "에스케이이사몰", "type": "MV", "month_num": 7, "year": 2026, "generated": 218, "participated": 173, "rate": 79.4, "bank_amount": 1010879, "aov": 5843, "regions": [{"region": "경기 화성", "total": 218, "partner": 173}]}, {"pid": 14181, "name": "광일익스프레스", "type": "MV", "month_num": 7, "year": 2026, "generated": 60, "participated": 47, "rate": 78.3, "bank_amount": 222828, "aov": 4741, "regions": [{"region": "광주 광산구", "total": 60, "partner": 47}]}, {"pid": 43131, "name": "영익스프레스", "type": "MV", "month_num": 7, "year": 2026, "generated": 232, "participated": 136, "rate": 58.6, "bank_amount": 872736, "aov": 6417, "regions": [{"region": "대구", "total": 232, "partner": 136}]}, {"pid": 47415, "name": "에스엠운수(청주포장이사)", "type": "MV", "month_num": 7, "year": 2026, "generated": 373, "participated": 186, "rate": 49.9, "bank_amount": 1779121, "aov": 9565, "regions": [{"region": "대전", "total": 187, "partner": 76}, {"region": "세종", "total": 62, "partner": 47}, {"region": "충북 음성", "total": 15, "partner": 7}, {"region": "충북 증평", "total": 3, "partner": 3}, {"region": "충북 진천", "total": 9, "partner": 6}, {"region": "충북 청주", "total": 97, "partner": 47}]}, {"pid": 91979, "name": "천사익스프레스", "type": "MV", "month_num": 7, "year": 2026, "generated": 62, "participated": 56, "rate": 90.3, "bank_amount": 539121, "aov": 9627, "regions": [{"region": "세종", "total": 62, "partner": 56}]}, {"pid": 70858, "name": "주식회사 공간연구소만옥", "type": "MV", "month_num": 8, "year": 2026, "generated": 743, "participated": 516, "rate": 69.4, "bank_amount": 2850623, "aov": 5524, "regions": [{"region": "경기 과천", "total": 16, "partner": 10}, {"region": "경기 군포", "total": 72, "partner": 46}, {"region": "경기 성남 분당구", "total": 102, "partner": 72}, {"region": "경기 수원", "total": 302, "partner": 203}, {"region": "경기 시흥", "total": 106, "partner": 81}, {"region": "경기 안양", "total": 119, "partner": 81}, {"region": "경기 의왕", "total": 26, "partner": 23}]}, {"pid": 12276, "name": "SK이삿짐이사", "type": "MV", "month_num": 8, "year": 2026, "generated": 197, "participated": 150, "rate": 76.1, "bank_amount": 768237, "aov": 5122, "regions": [{"region": "경기 구리", "total": 35, "partner": 21}, {"region": "경기 동두천", "total": 14, "partner": 11}, {"region": "경기 양주", "total": 69, "partner": 56}, {"region": "경기 의정부", "total": 79, "partner": 62}]}, {"pid": 41209, "name": "대박이사", "type": "MV", "month_num": 8, "year": 2026, "generated": 213, "participated": 135, "rate": 63.4, "bank_amount": 930000, "aov": 6889, "regions": [{"region": "경기 구리", "total": 35, "partner": 18}, {"region": "경기 남양주", "total": 115, "partner": 77}, {"region": "경기 하남", "total": 63, "partner": 40}]}, {"pid": 32134, "name": "오성이사", "type": "MV", "month_num": 8, "year": 2026, "generated": 1009, "participated": 492, "rate": 48.8, "bank_amount": 4073807, "aov": 8280, "regions": [{"region": "경기 군포", "total": 72, "partner": 35}, {"region": "경기 수원", "total": 302, "partner": 151}, {"region": "경기 안산", "total": 92, "partner": 29}, {"region": "경기 안양", "total": 119, "partner": 59}, {"region": "경기 용인 기흥구", "total": 94, "partner": 51}, {"region": "경기 용인 수지구", "total": 77, "partner": 38}, {"region": "경기 의왕", "total": 26, "partner": 12}, {"region": "경기 화성", "total": 227, "partner": 117}]}, {"pid": 10824, "name": "GTS 금성익스프레스", "type": "MV", "month_num": 8, "year": 2026, "generated": 179, "participated": 133, "rate": 74.3, "bank_amount": 788465, "aov": 5928, "regions": [{"region": "경기 성남 분당구", "total": 102, "partner": 69}, {"region": "경기 용인 수지구", "total": 77, "partner": 64}]}, {"pid": 74986, "name": "황제익스프레스", "type": "MV", "month_num": 8, "year": 2026, "generated": 92, "participated": 85, "rate": 92.4, "bank_amount": 1025965, "aov": 12070, "regions": [{"region": "경기 안산", "total": 92, "partner": 85}]}, {"pid": 72790, "name": "뚜겁이", "type": "MV", "month_num": 8, "year": 2026, "generated": 210, "participated": 202, "rate": 96.2, "bank_amount": 1162500, "aov": 5755, "regions": [{"region": "경기 오산", "total": 43, "partner": 41}, {"region": "경기 평택", "total": 167, "partner": 161}]}, {"pid": 26118, "name": "에스케이이사몰", "type": "MV", "month_num": 8, "year": 2026, "generated": 227, "participated": 164, "rate": 72.2, "bank_amount": 1010851, "aov": 6164, "regions": [{"region": "경기 화성", "total": 227, "partner": 164}]}, {"pid": 14181, "name": "광일익스프레스", "type": "MV", "month_num": 8, "year": 2026, "generated": 53, "participated": 5, "rate": 9.4, "bank_amount": 21532, "aov": 4306, "regions": [{"region": "광주 광산구", "total": 53, "partner": 5}]}, {"pid": 43131, "name": "영익스프레스", "type": "MV", "month_num": 8, "year": 2026, "generated": 261, "participated": 161, "rate": 61.7, "bank_amount": 1127264, "aov": 7002, "regions": [{"region": "대구", "total": 261, "partner": 161}]}, {"pid": 47415, "name": "에스엠운수(청주포장이사)", "type": "MV", "month_num": 8, "year": 2026, "generated": 407, "participated": 212, "rate": 52.1, "bank_amount": 1779149, "aov": 8392, "regions": [{"region": "대전", "total": 200, "partner": 105}, {"region": "세종", "total": 58, "partner": 39}, {"region": "충북 음성", "total": 12, "partner": 7}, {"region": "충북 증평", "total": 0, "partner": 0}, {"region": "충북 진천", "total": 12, "partner": 8}, {"region": "충북 청주", "total": 125, "partner": 53}]}, {"pid": 91979, "name": "천사익스프레스", "type": "MV", "month_num": 8, "year": 2026, "generated": 58, "participated": 43, "rate": 74.1, "bank_amount": 539149, "aov": 12538, "regions": [{"region": "세종", "total": 58, "partner": 43}]}, {"pid": 61270, "name": "프로용달이사", "type": "MVS", "month_num": 7, "year": 2026, "generated": 53, "participated": 36, "rate": 67.9, "bank_amount": 121303, "aov": 3370, "regions": [{"region": "경기 남양주", "total": 53, "partner": 36}]}, {"pid": 92143, "name": "해찬익스프레스", "type": "MVS", "month_num": 7, "year": 2026, "generated": 194, "participated": 194, "rate": 100.0, "bank_amount": 485212, "aov": 2501, "regions": [{"region": "경기 수원", "total": 194, "partner": 194}]}, {"pid": 70345, "name": "행복나름이사", "type": "MVS", "month_num": 7, "year": 2026, "generated": 44, "participated": 29, "rate": 65.9, "bank_amount": 121303, "aov": 4183, "regions": [{"region": "경기 시흥", "total": 44, "partner": 29}]}, {"pid": 97034, "name": "뚜버기이사, 두꺼비", "type": "MVS", "month_num": 7, "year": 2026, "generated": 63, "participated": 34, "rate": 54.0, "bank_amount": 212288, "aov": 6244, "regions": [{"region": "경기 안산", "total": 63, "partner": 34}]}, {"pid": 34692, "name": "아재용달이사", "type": "MVS", "month_num": 7, "year": 2026, "generated": 96, "participated": 96, "rate": 100.0, "bank_amount": 212288, "aov": 2211, "regions": [{"region": "경기 평택", "total": 96, "partner": 96}]}, {"pid": 84714, "name": "모범이사", "type": "MVS", "month_num": 7, "year": 2026, "generated": 134, "participated": 134, "rate": 100.0, "bank_amount": 353803, "aov": 2640, "regions": [{"region": "대전", "total": 134, "partner": 134}]}, {"pid": 36235, "name": "정겨운익스프레스", "type": "MVS", "month_num": 7, "year": 2026, "generated": 188, "participated": 185, "rate": 98.4, "bank_amount": 566091, "aov": 3060, "regions": [{"region": "서울 강동구", "total": 64, "partner": 62}, {"region": "서울 광진구", "total": 124, "partner": 123}]}, {"pid": 61270, "name": "프로용달이사", "type": "MVS", "month_num": 8, "year": 2026, "generated": 45, "participated": 36, "rate": 80.0, "bank_amount": 121307, "aov": 3370, "regions": [{"region": "경기 남양주", "total": 45, "partner": 36}]}, {"pid": 92143, "name": "해찬익스프레스", "type": "MVS", "month_num": 8, "year": 2026, "generated": 183, "participated": 179, "rate": 97.8, "bank_amount": 485228, "aov": 2711, "regions": [{"region": "경기 수원", "total": 183, "partner": 179}]}, {"pid": 70345, "name": "행복나름이사", "type": "MVS", "month_num": 8, "year": 2026, "generated": 62, "participated": 21, "rate": 33.9, "bank_amount": 121307, "aov": 5777, "regions": [{"region": "경기 시흥", "total": 62, "partner": 21}]}, {"pid": 97034, "name": "뚜버기이사, 두꺼비", "type": "MVS", "month_num": 8, "year": 2026, "generated": 66, "participated": 31, "rate": 47.0, "bank_amount": 212272, "aov": 6847, "regions": [{"region": "경기 안산", "total": 66, "partner": 31}]}, {"pid": 34692, "name": "아재용달이사", "type": "MVS", "month_num": 8, "year": 2026, "generated": 79, "participated": 75, "rate": 94.9, "bank_amount": 212272, "aov": 2830, "regions": [{"region": "경기 평택", "total": 79, "partner": 75}]}, {"pid": 84714, "name": "모범이사", "type": "MVS", "month_num": 8, "year": 2026, "generated": 113, "participated": 107, "rate": 94.7, "bank_amount": 353807, "aov": 3307, "regions": [{"region": "대전", "total": 113, "partner": 107}]}, {"pid": 36235, "name": "정겨운익스프레스", "type": "MVS", "month_num": 8, "year": 2026, "generated": 194, "participated": 187, "rate": 96.4, "bank_amount": 566079, "aov": 3027, "regions": [{"region": "서울 강동구", "total": 78, "partner": 77}, {"region": "서울 광진구", "total": 116, "partner": 110}]}];
+
+function fmt(n){return n.toLocaleString('ko-KR');}
+function ratePill(r){
+  var cls=r>=80?'rate-high':r>=50?'rate-mid':'rate-low';
+  return '<span class="rate-pill '+cls+'">'+r+'%</span>';
+}
+
+function getParams(){
+  var p=new URLSearchParams(location.search);
+  return {pid:p.get('pid')?parseInt(p.get('pid')):null, month:p.get('month')?parseInt(p.get('month')):null};
+}
+
+function getReports(pid){
+  return DATA.filter(function(r){return r.pid===pid;}).sort(function(a,b){return a.month_num-b.month_num;});
+}
+
+function renderMonth(r,container){
+  var regions=r.regions;
+  var regionRows=regions.map(function(reg){
+    var rate=reg.total>0?Math.round(reg.partner/reg.total*100):0;
+    return '<tr><td>'+reg.region+'</td><td class="num">'+fmt(reg.total)+'</td><td class="num">'+fmt(reg.partner)+'</td><td class="rate-cell">'+ratePill(rate)+'</td></tr>';
+  }).join('');
+
+  var rateW=Math.min(r.rate,100);
+  var rateColor=r.rate>=80?'#0d9e5a':r.rate>=50?'#f59d00':'#e53935';
+
+  container.innerHTML=
+    '<div class="rate-section">'+
+      '<div class="rate-label">참여율</div>'+
+      '<div class="rate-bar-bg"><div class="rate-bar" style="width:'+rateW+'%;background:linear-gradient(90deg,'+rateColor+','+rateColor+'99)"></div></div>'+
+      '<div class="rate-text">'+r.rate+'%</div>'+
+    '</div>'+
+    '<div class="metrics">'+
+      '<div class="metric"><div class="metric-label">생성건수</div><div class="metric-value">'+fmt(r.generated)+'</div><div class="metric-sub">건</div></div>'+
+      '<div class="metric green-bg"><div class="metric-label">참여건수</div><div class="metric-value">'+fmt(r.participated)+'</div><div class="metric-sub">건</div></div>'+
+      '<div class="metric highlight" style="grid-column:1/-1"><div class="metric-label">정산금액</div><div class="metric-value">'+fmt(r.bank_amount)+'<span style="font-size:14px;font-weight:400"> 원</span></div><div class="metric-sub">참여건당 '+fmt(r.aov)+'원</div></div>'+
+    '</div>'+
+    '<div class="section-title">지역별 현황</div>'+
+    '<table class="region-table">'+
+      '<thead><tr><th>지역</th><th>생성</th><th>참여</th><th>참여율</th></tr></thead>'+
+      '<tbody>'+regionRows+'</tbody>'+
+    '</table>'+
+    '<div class="chart-wrap"><canvas id="regionChart"></canvas></div>';
+
+  setTimeout(function(){
+    var ctx=document.getElementById('regionChart');
+    if(!ctx)return;
+    new Chart(ctx,{
+      type:'bar',
+      data:{
+        labels:regions.map(function(r){return r.region.replace('경기 ','').replace('서울 ','');}),
+        datasets:[
+          {label:'생성',data:regions.map(function(r){return r.total;}),backgroundColor:'#e8f0fe',borderRadius:4},
+          {label:'참여',data:regions.map(function(r){return r.partner;}),backgroundColor:'#1a73e8',borderRadius:4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11}}}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{font:{size:10}}}}}
+    });
+  },50);
+}
+
+function renderPartner(pid){
+  var reports=getReports(pid);
+  if(!reports.length){
+    document.getElementById('app').innerHTML='<div class="not-found"><h2>파트너를 찾을 수 없습니다</h2><p>PID: '+pid+'</p></div>';
+    return;
+  }
+  var r0=reports[reports.length-1]; // latest
+  var params=getParams();
+  var activeMonth=params.month||r0.month_num;
+  var activeReport=reports.find(function(r){return r.month_num===activeMonth;})||r0;
+
+  var typeBadge='<span class="type-badge type-'+r0.type+'">'+r0.type+'</span>';
+  var tabs=reports.map(function(r){
+    var cls=r.month_num===activeMonth?'month-tab active':'month-tab';
+    return '<button class="'+cls+'" onclick="window.location.search=\'?pid='+pid+'&month='+r.month_num+'\'">'+r.year+'년 '+r.month_num+'월</button>';
+  }).join('');
+
+  document.getElementById('app').innerHTML=
+    '<div class="partner-card">'+
+      '<div class="partner-header">'+typeBadge+'<div class="partner-name">'+r0.name+'</div></div>'+
+      '<div class="month-tabs">'+tabs+'</div>'+
+      '<div id="month-content"></div>'+
+      '<div class="no-next">다음달 예정금액: 미정</div>'+
+    '</div>';
+
+  renderMonth(activeReport, document.getElementById('month-content'));
+}
+
+function renderDirectory(){
+  var byPid={};
+  DATA.forEach(function(r){
+    if(!byPid[r.pid]) byPid[r.pid]={name:r.name,type:r.type,months:[],lastSettle:0,regions:[]};
+    byPid[r.pid].months.push(r.month_num);
+    byPid[r.pid].lastSettle=Math.max(byPid[r.pid].lastSettle,r.bank_amount);
+    r.regions.forEach(function(reg){if(!byPid[r.pid].regions.includes(reg.region))byPid[r.pid].regions.push(reg.region);});
+  });
+
+  var mv=[], mvs=[];
+  Object.keys(byPid).forEach(function(pid){
+    var d=byPid[pid];
+    var months=d.months.sort(function(a,b){return a-b;});
+    var monthChips=months.map(function(m){
+      var isLatest=m===months[months.length-1];
+      return '<span class="pi-month'+(isLatest?' active':'')+'">'+m+'월</span>';
+    }).join('');
+    var item='<a class="partner-item" href="?pid='+pid+'">'+
+      '<div class="pi-left">'+
+        '<div>'+
+          '<span class="type-badge type-'+d.type+'">'+d.type+'</span>'+
+          '<div class="pi-name" style="margin-top:4px">'+d.name+'</div>'+
+          '<div class="pi-regions">'+d.regions.slice(0,3).join(', ')+(d.regions.length>3?' 외 '+(d.regions.length-3)+'개':'')+'</div>'+
+        '</div>'+
+      '</div>'+
+      '<div class="pi-right"><div class="pi-amount">'+fmt(d.lastSettle)+'원</div><div class="pi-months">'+monthChips+'</div></div>'+
+    '</a>';
+    if(d.type==='MV') mv.push(item);
+    else mvs.push(item);
+  });
+
+  document.getElementById('app').innerHTML=
+    '<div class="dir-section"><div class="dir-title">🚛 MV 파트너 ('+mv.length+'개)</div><div class="partner-list">'+mv.join('')+'</div></div>'+
+    '<div class="dir-section"><div class="dir-title">📦 MVS 파트너 ('+mvs.length+'개)</div><div class="partner-list">'+mvs.join('')+'</div></div>';
+}
+
+var params=getParams();
+if(params.pid) renderPartner(params.pid);
+else renderDirectory();
+</script>
+</body>
+</html>
